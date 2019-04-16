@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>false</Optimize>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="Performance\**" />
+    <Compile Remove="Serialization\**" />
+    <EmbeddedResource Remove="Performance\**" />
+    <EmbeddedResource Remove="Serialization\**" />
+    <None Remove="Performance\**" />
+    <None Remove="Serialization\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="LogType.cs" />
+  </ItemGroup>
+
+</Project>
