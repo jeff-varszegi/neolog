@@ -17,6 +17,7 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
+using NeoLog.Formatting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,6 +32,9 @@ namespace NeoLog.Configuration
 
         private LoggerConfiguration parent;
         private List<LoggerConfiguration> children = new List<LoggerConfiguration>();
+
+        public string LoggerName { get; set; }
+        public Type LoggerType { get; set; }
 
         public LoggerConfiguration Parent
         {
@@ -72,9 +76,13 @@ namespace NeoLog.Configuration
             }
         }
 
-        public bool IsBufferingEnabled { get; set; }
+        /// <summary>When buffering mode is disabled, this indicates whether logging calls will be asynchronously dispatched (defaults to false)</summary>
+        public bool IsUnbufferedAsyncEnabled { get; set; } = false;
 
-        private TimeSpan bufferFlushInterval = TimeSpan.MaxValue;
+        /// <summary>Whether log buffering is enabled for this logger (defaults to true)</summary>
+        public bool IsBufferingEnabled { get; set; } = true;
+
+        private TimeSpan bufferFlushInterval = new TimeSpan(0, 0, 5);
 
         public TimeSpan BufferFlushInterval
         {
@@ -121,6 +129,7 @@ namespace NeoLog.Configuration
             }
         }
 
+        public bool IsExceptionThrowingEnabled { get; set; } = true;
         public bool IsExceptionCompactFormatEnabled { get; set; }
         public int ExceptionCompactFormatDepth { get; set; } = 1;
 
@@ -175,6 +184,8 @@ namespace NeoLog.Configuration
         public bool IsIdentityEncryptionEnabled { get; set; }
 
         public bool IsRelativeStackTraceEnabled { get; set; }
+
+        public bool IsAutoStartEnabled { get; set; } = true;
 
         public LoggerConfiguration() { }
 

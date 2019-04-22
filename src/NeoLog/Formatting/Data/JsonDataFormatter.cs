@@ -18,20 +18,29 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Formatting.Data
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Formats data as JSON</summary>
+    internal class JsonDataFormatter : IDataFormatter
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>Indicates the data format supported by this formatter</summary>
+        public DataFormat DataFormat { get; } = DataFormat.Json;
+
+        /// <summary>Formats the specified data as JSON</summary>
+        /// <param name="data">The data to format</param>
+        /// <param name="options">Formatting options to use</param>
+        /// <returns>A JSON representation of the specified data</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public string Format(object data, DataFormatOptions options)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO            
         }
     }
 }

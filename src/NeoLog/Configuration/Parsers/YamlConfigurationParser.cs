@@ -17,10 +17,33 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-namespace NeoLog
+using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace NeoLog.Configuration.Parsers
 {
-    internal interface IDataFormatter
+    /// <summary>Parses logging configurations from YAML</summary>
+    internal class YamlConfigurationParser : IConfigurationParser
     {
-        string Format(object data, DataFormatOptions options = DataFormatOptions.None);
+        /// <summary>A default/singleton instance</summary>
+        public static YamlConfigurationParser Default { get; } = new YamlConfigurationParser();
+
+        /// <summary>Indicates whether this parser is appropriate for the type of configuration text</summary>
+        /// <param name="text">The text to test</param>
+        /// <returns>true if this parser can likely handle the text, otherwise false</returns>
+        public bool HandlesFormat(string text)
+        {
+            text = text.Trim();
+            return !text.StartsWith("<") && !text.StartsWith("{");
+        }
+
+        /// <summary>Parses a configuration from text</summary>
+        /// <param name="text">The text to parse</param>
+        /// <returns>A logging configuration</returns>
+        public LoggingConfiguration Parse(string text)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -20,6 +20,8 @@
 using System;
 using System.Collections.Generic;
 
+using NeoLog.Collections;
+
 namespace NeoLog
 {
     /// <summary>A log entry, which stores a message together with its timestamp and other important information</summary>
@@ -46,11 +48,11 @@ namespace NeoLog
         /// <summary>The tag(s) of this entry</summary>
         public string Tag;
 
-        /// <summary>The category (or delimited categories) of this entry</summary>
-        public string Category;
+        /// <summary>One or more optional categories for this entry</summary>
+        public Category Category;
 
-        /// <summary>The identity, e.g. user, for the entry</summary>
-        public string Identity;
+        /// <summary>The user identity for the entry, if any</summary>
+        public string User;
 
         /// <summary>The thread ID of this entry (defaults to 0 if not set)</summary>
         public int ThreadId;
@@ -58,7 +60,6 @@ namespace NeoLog
         /// <summary>Extensible key/value pairs for this entry</summary>
         public IDictionary<string, string> Properties;
 
-        /*
         /// <summary>Constructs an entry</summary>
         /// <param name="level">The log level of the entry</param>
         /// <param name="timestamp">The timestamp of the entry</param>
@@ -68,8 +69,10 @@ namespace NeoLog
         /// <param name="data">The data of the entry</param>
         /// <param name="tag">The tag(s) of the entry</param>
         /// <param name="category">The category/categories of the entry</param>
+        /// <param name="user">The user identity for the entry, if any</param>
         /// <param name="threadId">The thread ID of the entry</param>
-        public EntryStruct(Level level, DateTime timestamp, string message, Exception exception, string context, object data, string tag, string category, int threadId)
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        public Entry(Level level, DateTime timestamp, string message, Exception exception = null, string context = null, object data = null, string tag = null, Category category = Category.None, string user = null, int threadId = 0, Dictionary<string, string> properties = null)
         {
             this.Level = level;
             this.Timestamp = timestamp;
@@ -79,8 +82,9 @@ namespace NeoLog
             this.Data = data;
             this.Tag = tag;
             this.Category = category;
+            this.User = user;
             this.ThreadId = threadId;
+            this.Properties = properties;
         }
-        */
     }
 }

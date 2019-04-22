@@ -17,21 +17,18 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog.Formatting.Data
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Formats data as text</summary>
+    internal interface IDataFormatter
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Indicates the data format supported by this formatter</summary>
+        DataFormat DataFormat { get; }
+
+        /// <summary>Formats the specified data as text</summary>
+        /// <param name="data">The data to format</param>
+        /// <param name="options">Formatting options to use</param>
+        /// <returns>A string representation of the specified object</returns>
+        string Format(object data, DataFormatOptions options = DataFormatOptions.None);
     }
 }

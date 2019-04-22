@@ -17,18 +17,21 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-namespace NeoLog
+using System;
+using System.Runtime.CompilerServices;
+
+namespace NeoLog.Utility
 {
-    /// <summary>Enumerates supported casing strategies for text</summary>
-    public enum Case
+    /// <summary>Utility routines for dealing with contexts</summary>
+    internal static class ContextUtility
     {
-        /// <summary>Lower case</summary>
-        Lower,
-
-        /// <summary>Indicates that the case of a string value should not be changed</summary>
-        Original,
-
-        /// <summary>Upper case</summary>
-        Upper
+        /// <summary>Converts a context to a string</summary>
+        /// <param name="context">The context to convert</param>
+        /// <returns>A string representation for the context</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string ConvertToString(this object context)
+        {
+            return context.ToString(); // TODO
+        }
     }
 }

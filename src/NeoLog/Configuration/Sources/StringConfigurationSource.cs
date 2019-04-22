@@ -18,20 +18,43 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Configuration.Sources
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Reads a logging configuration directly from a string; allows easy custom loading of configurations from alternate sources</summary>
+    public class StringConfigurationSource : ConfigurationSource
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>Configuration text</summary>
+        public string Text { get; private set; }
+
+        /// <summary>Default constructor</summary>
+        private StringConfigurationSource() { }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The configuration text to use</param>
+        public StringConfigurationSource(string text)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Invalid (null or whitespace) logging configuration text");
+            Text = text;
+        }
+
+        /// <summary>Gets configuration text</summary>
+        /// <returns>Text of a configuration, which may be encrypted</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected sealed override string LoadText()
+        {
+            return Text;
+        }
+
+        /// <summary>Stores configuration text</summary>
+        /// <param name="text">The text to store</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected sealed override void SaveText(string text)
+        {
+            Text = text;
         }
     }
 }

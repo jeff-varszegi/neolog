@@ -17,21 +17,18 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog.Formatting
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Enumerates supported casing strategies for text</summary>
+    public enum Case
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Lower case</summary>
+        Lower,
+
+        /// <summary>Indicates that the case of a string value should not be changed</summary>
+        Original,
+
+        /// <summary>Upper case</summary>
+        Upper
     }
 }

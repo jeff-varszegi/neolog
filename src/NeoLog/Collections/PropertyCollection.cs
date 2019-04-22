@@ -20,15 +20,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace NeoLog.Collections
 {
     /// <summary>A read-only string dictionary for small data sets</summary>
-    internal sealed class StringDictionary : IDictionary<string, string>
+    public sealed class PropertyCollection : IDictionary<string, string>
     {
         /// <summary>A null/empty value</summary>
-        public static StringDictionary EmptyStringDictionary = new StringDictionary();
+        public static PropertyCollection EmptyStringDictionary = new PropertyCollection();
 
         /// <summary>The keys for this mapping</summary>
         private string[] keys;
@@ -88,6 +89,43 @@ namespace NeoLog.Collections
 
         /// <summary>Returns true</summary>
         public bool IsReadOnly { get { return true; } }
+
+        /// <summary>Default constructor</summary>
+        private PropertyCollection() { }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="pairs">Key-value pairs to use</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PropertyCollection(IEnumerable<KeyValuePair<string, string>> pairs)
+        {
+            Count = pairs.Count();
+            keys = new string[Count];
+            values = new string[Count];
+
+            Count = 0;
+            foreach (KeyValuePair<string, string> pair in pairs)
+            {
+                keys[Count] = pair.Key;
+                values[Count] = pair.Value;
+                Count++;
+            }
+        }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="pairs">Key-value pairs to use</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public PropertyCollection(params string[] pairs)
+        {
+            Count = pairs.Length / 2;
+            keys = new string[Count];
+            values = new string[Count];
+
+            for (int x = 0; x < Count; x++)
+            {
+                keys[x] = pairs[x * 2] ?? "";
+                values[x] = pairs[(x * 2) + 1] ?? "";
+            }
+        }
 
         /// <summary>Unsupported</summary>
         public void Add(string key, string value)
@@ -212,7 +250,7 @@ namespace NeoLog.Collections
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                if (index < pairs.Length)
+                if (index < pairs.Length - 1)
                 {
                     index++;
                     return true;

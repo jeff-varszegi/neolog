@@ -17,21 +17,20 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Enumerates logger statuses</summary>
+    public enum LoggerStatus
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Indicates that a logger is stopped</summary>
+        Stopped,
+        /// <summary>Indicates that a logger is starting</summary>
+        Starting,
+        /// <summary>Indicates that a logger is started</summary>
+        Started,
+        /// <summary>Indicates that a logger is stopping</summary>
+        Stopping,
+        /// <summary>Indicates that a logger experienced an error and cannot log messages</summary>
+        Error
     }
 }

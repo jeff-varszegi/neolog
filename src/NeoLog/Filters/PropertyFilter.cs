@@ -23,7 +23,15 @@ using System.Text;
 
 namespace NeoLog.Filters
 {
-    class PropertyFilter
+    /// <summary>Includes/excludes entries based on custom property values</summary>
+    public sealed class PropertyFilter : IFilter
     {
+        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
+        /// <param name="entry">The entry to test</param>
+        /// <returns>true if the entry should be excluded, otherwise false</returns>
+        public bool Excludes(ref Entry entry)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

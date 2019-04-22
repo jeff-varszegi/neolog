@@ -19,17 +19,19 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 using NeoLog.Configuration;
 
 namespace NeoLog
 {
     /// <summary>Logs messages to some output</summary>
-    public interface ILogger
+    public interface ILogger : IDisposable
     {
-        /// <summary></summary>
+        /// <summary>The configuration for this logger</summary>
         LoggerConfiguration Configuration { get; set; }
+
+        /// <summary>The current status of this logger</summary>
+        LoggerStatus Status { get; }
 
         /// <summary>A logger to receive messages when this logger cannot write to output</summary>
         ILogger BackupLogger { get; set; }
@@ -40,8 +42,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogTrace(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogTrace(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the debug level</summary>
         /// <param name="message">The message to write</param>
@@ -49,8 +52,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogDebug(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogDebug(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the informational level</summary>
         /// <param name="message">The message to write</param>
@@ -58,8 +62,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogInfo(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogInfo(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the warning level</summary>
         /// <param name="message">The message to write</param>
@@ -67,8 +72,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogWarning(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogWarning(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the warning level</summary>
         /// <param name="exception">The exception for this warning</param>
@@ -77,8 +83,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogWarning(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogWarning(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the exception level</summary>
         /// <param name="message">The message to write</param>
@@ -86,8 +93,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogException(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogException(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the exception level</summary>
         /// <param name="exception">The exception to write</param>
@@ -96,8 +104,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogException(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogException(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the fatal level</summary>
         /// <param name="message">The message to write</param>
@@ -105,8 +114,9 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogFatal(string message, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogFatal(string message, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
 
         /// <summary>Logs a message at the fatal level</summary>
         /// <param name="exception">The exception to write</param>
@@ -115,7 +125,8 @@ namespace NeoLog
         /// <param name="data">The data for the entry</param>
         /// <param name="tag">The tag for the entry</param>
         /// <param name="category">The category for the entry</param>
-        /// <param name="identity">The identity making the entry</param>
-        void LogFatal(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string identity = null);
+        /// <param name="user">The user for the entry</param>
+        /// <param name="properties">Custom key-value pairs for the entry</param>
+        void LogFatal(Exception exception, string message = null, object context = null, object data = null, string tag = null, string category = null, string user = null, IDictionary<string, string> properties = null);
     }
 }

@@ -18,20 +18,34 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
-using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Configuration.Parsers
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Gets configuration parsers</summary>
+    internal static class ConfigurationParserFactory
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>Parsers to use in testing and parsing configurations</summary>
+        private static IConfigurationParser[] Parsers =
         {
-            throw new NotImplementedException();
+            JsonConfigurationParser.Default,
+            XmlConfigurationParser.Default,
+            YamlConfigurationParser.Default
+        };
+
+        /// <summary>Gets a parser for the specified text</summary>
+        /// <param name="text">The text for which to get an appropriate parser</param>
+        /// <returns>A parser, or null if none is found</returns>
+        public static IConfigurationParser GetParser(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text)) throw new ArgumentException("Invalid (null or whitespace) configuration text");
+
+            foreach (IConfigurationParser parser in Parsers)
+            {
+                if (parser.HandlesFormat(text))
+                    return parser;
+            }
+
+            return null;
         }
     }
 }

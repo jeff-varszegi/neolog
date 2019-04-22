@@ -18,20 +18,32 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Configuration
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>The overall logging configuration for an entire system</summary>
+    public class LoggingConfiguration
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>A default/global configuration</summary>        
+        private static LoggingConfiguration DefaultValue = new LoggingConfiguration();
+
+        /// <summary>A default/global configuration</summary>        
+        public static LoggingConfiguration Default
         {
-            throw new NotImplementedException();
+            get { return DefaultValue; }
+            set { if (value != null) DefaultValue = value; }
         }
+
+        /// <summary>Indicates whether exception throwing is enabled, or exceptions will be silently logged or suppressed</summary>
+#if DEBUG
+        public bool IsExceptionThrowingEnabled { get; set; } = true;
+#else
+        public bool IsExceptionThrowingEnabled { get; set; } = false;
+#endif
+
+        /// <summary>The logger for exceptions</summary>
+        public Logger ExceptionLogger { get; set; }
     }
 }

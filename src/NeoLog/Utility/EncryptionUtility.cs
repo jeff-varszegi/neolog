@@ -18,18 +18,31 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Utility
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Provides simple symmetric encryption and decryption for strings</summary>
+    public static class EncryptionUtility
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>Password-encrypts text</summary>
+        /// <param name="text">The text to encrypt</param>
+        /// <param name="password">The password to use</param>
+        /// <returns>An encrypted version of the specified text</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string Encrypt(string text, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        /// <summary>Password-decrypts text</summary>
+        /// <param name="text">The text to decrypt</param>
+        /// <param name="password">The password to use</param>
+        /// <returns>A decrypted version of the specified text</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static string Decrypt(string text, string password)
         {
             throw new NotImplementedException();
         }

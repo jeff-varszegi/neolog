@@ -17,21 +17,15 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Enumerates boolean operators</summary>
+    public enum BooleanOperator
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Indicates that both operands must evaluate to true</summary>
+        And,
+
+        /// <summary>Indicates that at least one operand must evaluate to true</summary>
+        Or
     }
 }

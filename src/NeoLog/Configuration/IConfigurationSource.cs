@@ -17,21 +17,18 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog.Configuration
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>A source of configuration info</summary>
+    public interface IConfigurationSource
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Gets a logging configuration</summary>
+        /// <param name="password">A password to use in optional decryption</param>
+        /// <param name="resaveEncrypted">If true and a password is supplied, requests that the configuration source encrypt and resave the configuration after a successful load</param>
+        /// <returns>A logging configuration</returns>
+        LoggingConfiguration GetConfiguration(string password = null, bool resaveEncrypted = false);
+
+        /// <summary>Indicates whether this configuration source refreshes configurations from underlying data</summary>
+//        bool IsAutoRefreshEnabled { get; set; } // TODO
     }
 }

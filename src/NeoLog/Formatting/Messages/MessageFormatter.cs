@@ -18,18 +18,15 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Formatting.Messages
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Formats messages using on a token-based pattern language</summary>
+    internal class MessageFormatter
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        public string Format(string message)
         {
             throw new NotImplementedException();
         }

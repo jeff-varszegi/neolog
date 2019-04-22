@@ -23,8 +23,12 @@ using System.Text;
 
 namespace NeoLog
 {
+    /// <summary>A filter for log entries</summary>
     public interface IFilter
     {
-        // TODO
+        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
+        /// <param name="entry">The entry to test</param>
+        /// <returns>true if the entry should be excluded, otherwise false</returns>
+        bool Excludes(ref Entry entry);
     }
 }

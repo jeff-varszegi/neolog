@@ -19,11 +19,73 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text.RegularExpressions;
 
 namespace NeoLog.Filters
 {
-    class RegularExpressionFilter
+    public sealed class RegularExpressionFilter : IFilter
     {
+        /// <summary>Regular expression options to use in case-sensitive mode</summary>
+        private const RegexOptions CaseSensitiveOptions = RegexOptions.Compiled | RegexOptions.CultureInvariant;
+
+        /// <summary>Regular expression options to use in case-insensitive mode</summary>
+        private const RegexOptions CaseInsensitiveOptions = RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase;
+
+        /// <summary>The regular expressions to test</summary>
+        private Regex[] regexes;
+
+        /// <summary>The boolean operator to use when evaluating multiple regular expressions</summary>
+        private BooleanOperator booleanOperator;
+
+        /// <summary>Default constructor</summary>
+        private RegularExpressionFilter() { }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="patterns">The regular expression patterns to use</param>
+        /// <param name="caseInsensitive">If true (the default), matching will be case-insensitive, otherwise case-sensitive</param>
+        /// <param name="op">Whether to use AND or OR logic when matching against multiple patterns</param>
+        public RegularExpressionFilter(IEnumerable<string> patterns, bool caseInsensitive = true, BooleanOperator op = BooleanOperator.Or)
+        {
+            if (patterns == null) throw new ArgumentNullException();
+            List<Regex> list = new List<Regex>(5);
+            Regex regex;
+            foreach (string pattern in patterns.Distinct())
+            {
+                try
+                {
+                    regex = new Regex(pattern, caseInsensitive ? CaseInsensitiveOptions : CaseSensitiveOptions);
+                    list.Add(regex);
+                }
+                catch { }
+            }
+
+            regexes = list.ToArray();
+        }
+
+        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
+        /// <param name="entry">The entry to test</param>
+        /// <returns>true if the entry should be excluded, otherwise false</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool Excludes(ref Entry entry)
+        {
+            if (booleanOperator == BooleanOperator.Or)
+            {
+                for (int x = 0; x < regexes.Length; x++)
+                    if (regexes[x].IsMatch(entry.Message))
+                        return true;
+
+                return false;
+            }
+            else
+            {
+                for (int x = 0; x < regexes.Length; x++)
+                    if (!regexes[x].IsMatch(entry.Message))
+                        return false;
+
+                return true;
+            }
+        }
     }
 }

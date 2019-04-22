@@ -18,18 +18,29 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Text;
 
-namespace NeoLog.Filters
+namespace NeoLog.Configuration.Parsers
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Parses logging configurations from JSON</summary>
+    internal class JsonConfigurationParser : IConfigurationParser
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>A default/singleton instance</summary>
+        public static JsonConfigurationParser Default { get; } = new JsonConfigurationParser();
+
+        /// <summary>Indicates whether this parser is appropriate for the type of configuration text</summary>
+        /// <param name="text">The text to test</param>
+        /// <returns>true if this parser can likely handle the text, otherwise false</returns>
+        public bool HandlesFormat(string text)
+        {
+            return text.Trim().StartsWith("{");
+        }
+
+        /// <summary>Parses a configuration from text</summary>
+        /// <param name="text">The text to parse</param>
+        /// <returns>A logging configuration</returns>
+        public LoggingConfiguration Parse(string text)
         {
             throw new NotImplementedException();
         }

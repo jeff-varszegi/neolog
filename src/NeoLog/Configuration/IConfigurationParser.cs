@@ -17,21 +17,19 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic; 
-using System.Text;
-
-namespace NeoLog.Filters
+namespace NeoLog.Configuration
 {
-    /// <summary>Includes/excludes entries based on level</summary>
-    public sealed class LevelFilter : IFilter
+    /// <summary>Parses a configuration</summary>
+    public interface IConfigurationParser
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Indicates whether this parser is appropriate for the type of configuration text</summary>
+        /// <param name="text">The text to test</param>
+        /// <returns>true if this parser can likely handle the text, otherwise false</returns>
+        bool HandlesFormat(string text);
+
+        /// <summary>Parses a configuration from text</summary>
+        /// <param name="text">The text to parse</param>
+        /// <returns>A logging configuration</returns>
+        LoggingConfiguration Parse(string text);
     }
 }
