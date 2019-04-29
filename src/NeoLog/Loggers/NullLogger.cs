@@ -17,57 +17,34 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
 using System.Runtime.CompilerServices;
 
 using NeoLog.Configuration;
 
 namespace NeoLog.Loggers
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A logger which writes no output</summary>
+    public sealed class NullLogger : Logger
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
-
         /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
-        {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+        private static LoggerConfiguration StaticConfiguratoin = new LoggerConfiguration();
 
         /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
+        protected override LoggerConfiguration DefaultConfiguration {
             get
             {
-                return StaticConfiguration.Copy();
+                return StaticConfiguratoin;
             }
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
-
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
+        /// <summary>Does nothing</summary>
+        /// <param name="buffer">A log-entry buffer</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
-        {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
-        }
+        protected override void Write(EntryBuffer buffer) { }
 
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
+        /// <summary>Does nothing</summary>
+        /// <param name="entry">A log entry</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
-        {
-            Console.WriteLine(FormatEntry(ref entry));
-        }
+        protected override void Write(ref Entry entry) { }
     }
 }

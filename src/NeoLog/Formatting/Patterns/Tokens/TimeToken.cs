@@ -18,56 +18,64 @@
 ***********************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 
-using NeoLog.Configuration;
-
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A token for raw text</summary>
+    internal sealed class TimeToken : Token
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
-
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        /// <summary>Static initializer</summary>
+        static TimeToken()
         {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
-
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
-            {
-                return StaticConfiguration.Copy();
-            }
+            TokenFactory.Default.Register(typeof(TimeToken), "{{time}}");
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
+        /// <summary>Default constructor</summary>
+        private TimeToken() : base(null) { }
 
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
+        public TimeToken(string text) : base(text) { }
+
+        /// <summary>Formats a timestamp</summary>
+        /// <param name="timestamp">The timestamp to format</param>
+        /// <returns>A string representation of the specified timestamp</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static string FormatTimestamp(ref DateTime timestamp)
         {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
+            char[] characters = new char[8];
+            int i;
+
+            i = timestamp.Hour;
+            characters[0] = (char)((i / 10) + 48);
+            characters[1] = (char)((i % 10) + 48);
+            //
+            characters[2] = ':';
+            //
+            i = timestamp.Minute;
+            characters[3] = (char)((i / 10) + 48);
+            characters[4] = (char)((i % 10) + 48);
+            //
+            characters[5] = ':';
+            //
+            i = timestamp.Second;
+            characters[6] = (char)((i / 10) + 48);
+            characters[7] = (char)((i % 10) + 48);
+
+            return new string(characters);
         }
 
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
+        public override string Format(ref Entry entry)
         {
-            Console.WriteLine(FormatEntry(ref entry));
+            return FormatTimestamp(ref entry.Timestamp);
         }
     }
 }

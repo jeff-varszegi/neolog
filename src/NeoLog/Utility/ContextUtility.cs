@@ -31,7 +31,10 @@ namespace NeoLog.Utility
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ConvertToString(this object context)
         {
-            return context.ToString(); // TODO
+            if (context != null)
+                return context.ToString(); // TODO
+            else
+                return null;
         }
     }
 }

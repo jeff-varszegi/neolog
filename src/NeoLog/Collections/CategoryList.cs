@@ -199,5 +199,30 @@ namespace NeoLog.Collections
         }
 
         #endregion
+
+        /*
+        #region Operator overloading
+
+        /// <summary>Performs a type conversion</summary>
+        /// <param name="category">The object to convert</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator CategoryList(Category category)
+        {
+            return (CategoryList)category.Split();
+        }
+
+        /// <summary>Performs a type conversion</summary>
+        /// <param name="categoryList">The object to convert</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static implicit operator Category(CategoryList categoryList)
+        {
+            Category category = Category.None;
+            for (int x = 0; x < categoryList.categories.Length; x++)
+                category |= categoryList.categories[x];
+            return category;
+        }
+
+        #endregion
+        */
     }
 }

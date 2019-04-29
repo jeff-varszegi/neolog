@@ -28,10 +28,13 @@ namespace NeoLog
 {
     /// <summary>Enumerates entry categories</summary>
     [Flags]
-    public enum Category
+    public enum Category : long
     {
         /// <summary>Indicates that no category flags have been applied to an entry</summary>
         None = 0,
+
+        /// <summary>Indicates that admin operations are logged</summary>
+        Accounting = 1,
 
         /// <summary>Indicates that admin operations are logged</summary>
         Admin = 1,
@@ -42,17 +45,113 @@ namespace NeoLog
         /// <summary>Indicates that an entry is made in an audit log</summary>
         Audit = 4,
 
-        /// <summary>Indicates that data, such as content, is accessed, updated or deleted</summary>
+        /// <summary>Indicates that a  event is logged</summary>
+        Billing = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Cloud = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Compliance = 4,
+
+        /// <summary>Indicates that content is accessed, updated or deleted</summary>
+        Content = 8,
+
+        /// <summary>Indicates that data, such as database data, is accessed, updated or deleted</summary>
         Data = 8,
+
+        /// <summary>Indicates that data, such as database data, is accessed, updated or deleted</summary>
+        Deployment = 8,
+
+        /// <summary>Indicates that data, such as database data, is accessed, updated or deleted</summary>
+        Development = 8,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Error = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Finance = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Form = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Fulfillment = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Governance = 4,
+
+        /// <summary>Indicates that data, such as database data, is accessed, updated or deleted</summary>
+        Integration = 8,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Marketing = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Management = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Mobile = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Operations = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Order = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Production = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Personnel = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Publishing = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Purchasing = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Research = 4,
+
+        /// <summary>Indicates that a security event is logged</summary>
+        Sales = 16,
 
         /// <summary>Indicates that a security event is logged</summary>
         Security = 16,
 
+        /// <summary>Indicates that a security event is logged</summary>
+        Sensitive = 16,
+
+        /// <summary>Indicates that a security event is logged</summary>
+        Session = 16,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Startup = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Shutdown = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Source = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Statistic = 4,
+
         /// <summary>Indicates that system-level data is logged</summary>
         System = 32,
 
+        /// <summary>Indicates that a  event is logged</summary>
+        Tracking = 4,
+        
         /// <summary>Indicates that user activity is logged</summary>
         User = 64,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Warning = 4,
+
+        /// <summary>Indicates that a  event is logged</summary>
+        Web = 4,
 
         /// <summary>A custom category</summary>
         Custom1 = 128,

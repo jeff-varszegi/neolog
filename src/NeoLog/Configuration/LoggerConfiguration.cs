@@ -133,19 +133,21 @@ namespace NeoLog.Configuration
         public bool IsExceptionCompactFormatEnabled { get; set; }
         public int ExceptionCompactFormatDepth { get; set; } = 1;
 
-        private const string DefaultMessageFormat = "{{timestamp}} {{level:upper}} {{thread}}{{message}}{{context:type}}{{context:id}}{{tag}}{{category}}{{data}}";
+        private const string DefaultEntryFormat = "{{timestamp}} [{{level}}] {{message}}";
 
-        private string messageFormat = DefaultMessageFormat;
-        public string MessageFormat
+        private string entryFormat = DefaultEntryFormat;
+        public string EntryFormat
         {
             get
             {
-                return messageFormat;
+                return entryFormat;
             }
             set
             {
                 if (string.IsNullOrWhiteSpace(value) || value.IndexOf("{{") < 0)
-                    messageFormat = DefaultMessageFormat;
+                    entryFormat = DefaultEntryFormat;
+                else
+                    entryFormat = value;
             }
         }
 

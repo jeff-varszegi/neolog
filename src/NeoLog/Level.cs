@@ -25,6 +25,8 @@ namespace NeoLog
     [Flags]
     public enum Level
     {
+        /// <summary>A level indicating that no logging should or will be performed</summary>
+        None = 0,
         /// <summary>A tracing logging level</summary>
         Trace = 1,
         /// <summary>A debugging logging level</summary>
@@ -36,8 +38,6 @@ namespace NeoLog
         /// <summary>A An exception logging level</summary>
         Exception = 16,
         /// <summary>A fatal-error logging level</summary>
-        Fatal = 32,
-        /// <summary>A level indicating that no logging should or will be performed</summary>
-        None = 64
+        Fatal = 32
     }
 }

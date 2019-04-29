@@ -53,6 +53,8 @@ namespace NeoLog.Utility
             CategoryReverseMap[Category.Security] = "security";
             CategoryReverseMap[Category.System] = "system";
             CategoryReverseMap[Category.User] = "user";
+
+
             CategoryReverseMap[Category.Custom1] = "(custom)";
             CategoryReverseMap[Category.Custom2] = "(custom)";
             CategoryReverseMap[Category.Custom3] = "(custom)";

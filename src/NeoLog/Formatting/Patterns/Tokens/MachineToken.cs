@@ -17,57 +17,43 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Runtime.CompilerServices;
-
-using NeoLog.Configuration;
-
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A token for the machine name</summary>
+    internal sealed class MachineToken : Token
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
+        // TODO punch down configuration to allow overriding this value
+        /// <summary>The value to use when replacing token placeholders</summary>
+        private static string MachineName;
 
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        /// <summary>Static initializer</summary>
+        static MachineToken()
         {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+            TokenFactory.Default.Register(typeof(MachineToken), "{{machine}}");
 
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
+            try
             {
-                return StaticConfiguration.Copy();
+                MachineName = System.Diagnostics.Process.GetCurrentProcess().MachineName;
+            }
+            catch
+            {
+                MachineName = "";
             }
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
+        /// <summary>Default constructor</summary>
+        private MachineToken() : base(null) { }
 
-        }
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
+        public MachineToken(string text) : base(text) { }
 
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
+        public override string Format(ref Entry entry)
         {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
-        }
-
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
-        {
-            Console.WriteLine(FormatEntry(ref entry));
+            return MachineName;
         }
     }
 }

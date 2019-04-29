@@ -175,6 +175,8 @@ namespace NeoLog
         {
             lock (monitor)
             {
+                if (isPooled)
+                    return;
                 Clear();
                 if (BufferPool.Count < MaximumBufferPoolCount) // it's all right to be a little over
                 {

@@ -22,8 +22,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
-
+using System.Threading;
+using System.Threading.Tasks;
 using NeoLog.Configuration;
+using NeoLog.Formatting.Patterns;
 using NeoLog.Utility;
 
 namespace NeoLog
@@ -39,7 +41,6 @@ namespace NeoLog
 
         /// <summary>The current buffer being written to, in buffering mode</summary>
         private EntryBuffer currentBuffer;
-
         
         private int entryCount = 0;
 
@@ -72,24 +73,60 @@ namespace NeoLog
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected bool IsEntryExcluded(ref Entry entry)
         {
-            for (int x = filters.Length - 1; x >= 0; x--)
+            for (int x = 0; x < filters.Length; x++)
                 if (filters[x].Excludes(ref entry))
                     return true;
 
             return false;
         }
 
+        /// <summary>Formats the specified entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected string FormatEntry(ref Entry entry)
+        {
+            return entryPattern.Format(ref entry);
+        }
+
         #region Life-cycle methods
+
+        /// <summary>The pattern to use in formatting entries for this logger</summary>
+        private Pattern entryPattern;
+
+        /// <summary>Whether buffering mode is enabled for this logger</summary>
+        bool isBufferingEnabled;
+
+        /// <summary>Whether, when in unbuffered mode, async calls will still be used</summary>
+        bool isUnbufferedAsyncEnabled;
+
+        /// <summary>Handle pre-start initialization steps based on the configuration</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ProcessConfiguration()
+        {
+            if (configuration == null)
+                configuration = DefaultConfiguration.Copy();
+            if (configuration == null)
+                throw new InvalidOperationException("Cannot start a logger without a configuration");
+
+            isBufferingEnabled = configuration.IsBufferingEnabled;
+            isUnbufferedAsyncEnabled = configuration.IsUnbufferedAsyncEnabled;
+
+            if (string.IsNullOrWhiteSpace(configuration.EntryFormat))
+                throw new InvalidOperationException("Cannot start a logger without a defined entry format");
+            else
+                entryPattern = new Pattern(configuration.EntryFormat);
+
+
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Start() {
-            LoggerConfiguration config = this.Configuration;
-            if (config == null)
-                throw new InvalidOperationException("Cannot start a logger without a configuration");
 
             lock (monitor)
             {
                 if (Status != LoggerStatus.Stopped) return;
+                ProcessConfiguration();
                 Status = LoggerStatus.Starting;
             }
 
@@ -249,23 +286,41 @@ namespace NeoLog
         {
             if (Status != LoggerStatus.Started)
             {
-                if ((bool)configuration?.IsExceptionThrowingEnabled)
+                if (configuration == null || configuration.IsExceptionThrowingEnabled)
                     throw new InvalidOperationException("The logger is not started--cannot write entry");
                 else
                     return;
             }
 
-            if (configuration.IsBufferingEnabled)
+            if (isBufferingEnabled)
             {
 
             }
             else
             {
-//                Entry entry = new Entry(level, Timekeeper.GetCurrentTimestamp(), message, exception, context, data, tag, );
-            }
-            if (configuration.IsUnbufferedAsyncEnabled)
-            {
+                Entry entry = new Entry(level, Timekeeper.GetCurrentTimestamp(), message, exception, context, data, tag, Category.None, user, 0, properties);
+                if (IsEntryExcluded(ref entry)) return;
 
+                if (isUnbufferedAsyncEnabled)
+                {
+                    Task.Run(() => Write(ref entry));
+                }
+                else
+                {
+                    try
+                    {
+                        Write(ref entry);
+                    } catch (Exception e)
+                    {
+                        if (this.BackupLogger != null)
+                        {
+                            try
+                            {
+                                this.BackupLogger.LogException(e, "Cannot log message", this);
+                            } catch { }
+                        }
+                    }
+                }
             }
         }
 

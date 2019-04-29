@@ -18,56 +18,42 @@
 ***********************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
 
-using NeoLog.Configuration;
-
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A token for raw text</summary>
+    internal sealed class TimeMinutesToken : Token
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
+        /// <summary>A table of values to look up by index</summary>
+        private static string[] Values = new string[60];
 
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        /// <summary>Static initializer</summary>
+        static TimeMinutesToken()
         {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+            for (int x = 0; x < Values.Length; x++)
+                Values[x] = x.ToString().PadLeft(2, '0');
 
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
-            {
-                return StaticConfiguration.Copy();
-            }
+            TokenFactory.Default.Register(typeof(TimeMinutesToken), "{{time.minutes}}");
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
+        /// <summary>Default constructor</summary>
+        private TimeMinutesToken() : base(null) { }
 
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
-        {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
-        }
+        public TimeMinutesToken(string text) : base(text) { }
 
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
+        public override string Format(ref Entry entry)
         {
-            Console.WriteLine(FormatEntry(ref entry));
+            return Values[entry.Timestamp.Minute];
         }
     }
 }

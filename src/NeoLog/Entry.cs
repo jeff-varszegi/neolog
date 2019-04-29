@@ -72,7 +72,7 @@ namespace NeoLog
         /// <param name="user">The user identity for the entry, if any</param>
         /// <param name="threadId">The thread ID of the entry</param>
         /// <param name="properties">Custom key-value pairs for the entry</param>
-        public Entry(Level level, DateTime timestamp, string message, Exception exception = null, string context = null, object data = null, string tag = null, Category category = Category.None, string user = null, int threadId = 0, Dictionary<string, string> properties = null)
+        public Entry(Level level, DateTime timestamp, string message, Exception exception = null, string context = null, object data = null, string tag = null, Category category = Category.None, string user = null, int threadId = 0, IDictionary<string, string> properties = null)
         {
             this.Level = level;
             this.Timestamp = timestamp;

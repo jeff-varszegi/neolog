@@ -19,16 +19,38 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
-namespace NeoLog.Formatting.Messages
+namespace NeoLog.Extensions
 {
-    /// <summary>Formats messages using on a token-based pattern language</summary>
-    internal class MessageFormatter
+    /// <summary>Provides extension/utility logic for Regex objects</summary>
+    internal static class RegexExtensions
     {
-        public string Format(string message)
+        /// <summary>Splits the specified string based on the pattern of this regular expression, returning the text of all matches and non-matches in order</summary>
+        /// <param name="regex">this regex</param>
+        /// <param name="text">The text to tokenize</param>
+        /// <returns>A list of tokens in source order</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static IList<string> Tokenize(this Regex regex, string text)
         {
-            throw new NotImplementedException();
+            if (regex == null || string.IsNullOrEmpty(text)) return new List<string>();
+
+            List<string> tokens = new List<string>();
+            int index = 0;
+            foreach (Match match in regex.Matches(text))
+            {
+                if (match.Index > index)
+                    tokens.Add(text.Substring(index, match.Index - index));
+                tokens.Add(match.Value);
+                index = match.Index + match.Length;
+            }
+
+            if (index < text.Length)
+                tokens.Add(text.Substring(index, text.Length - index));
+
+            return tokens;
         }
     }
 }

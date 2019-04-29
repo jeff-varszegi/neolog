@@ -17,57 +17,76 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
 using System.Runtime.CompilerServices;
 
-using NeoLog.Configuration;
-
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A token for entry levels</summary>
+    internal sealed class LevelToken : Token
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
-
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        /// <summary>Static initializer</summary>
+        static LevelToken()
         {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+            TokenFactory.Default.Register(typeof(LevelToken), "{{level[^}]*}}");
+        }
 
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
+        /// <summary>Values to emit for different entry levels</summary>
+        private string[] values;
+
+        /// <summary>Default constructor</summary>
+        private LevelToken() : base(null) { }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public LevelToken(string text) : base(text) {
+
+            values = new string[33];
+
+            values[0] = "";
+            values[1] = "Trace";
+            values[2] = "Debug";
+            values[4] = "Info";
+            values[8] = "Warning";
+            values[16] = "Exception";
+            values[32] = "Fatal";
+
+            if (ParameterText.Contains("case=upper"))
             {
-                return StaticConfiguration.Copy();
+                for (int x = 1; x < values.Length; x++)
+                    if (values[x] != null)
+                        values[x] = values[x].ToUpper();
+            }
+            else if (ParameterText.Contains("case=lower"))
+            {
+                for (int x = 1; x < values.Length; x++)
+                    if (values[x] != null)
+                        values[x] = values[x].ToLower();
+            }
+
+            if (ParameterText.Contains("center=true"))
+            {
+                values[1] = values[1].PadLeft(7).PadRight(9);
+                values[2] = values[2].PadLeft(7).PadRight(9);
+                values[4] = values[4].PadLeft(6).PadRight(9);
+                values[8] = values[8].PadLeft(8).PadRight(9);
+                values[32] = values[32].PadLeft(7).PadRight(9);
+            }
+            else if (ParameterText.Contains("pad=true"))
+            {
+                for (int x = 1; x < values.Length; x++)
+                    if (values[x] != null)
+                        values[x] = values[x].PadRight(9);
             }
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
-
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
+        public override string Format(ref Entry entry)
         {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
-        }
-
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
-        {
-            Console.WriteLine(FormatEntry(ref entry));
+            return values[(int)entry.Level];
         }
     }
 }

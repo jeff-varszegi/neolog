@@ -18,56 +18,58 @@
 ***********************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
 
-using NeoLog.Configuration;
+using NeoLog.Extensions;
+using NeoLog.Formatting.Patterns.Tokens;
 
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>Formats entries using on a token-based pattern language. This type is thread-safe.</summary>
+    public sealed class Pattern
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
+        /// <summary>A regular expression used in tokenization</summary>
+        private static Regex PatternRegex = new Regex(@"{{[a-zA-Z0-9\.]*[^}]*}}", RegexOptions.Compiled | RegexOptions.CultureInvariant);
 
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
-        {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+        /// <summary>Tokens to use in formatting messages</summary>
+        private Token[] tokens;
 
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
-            {
-                return StaticConfiguration.Copy();
-            }
-        }
+        /// <summary>The length to use in iniitalizing a new StringBuilder for formatting an entry</summary>
+        private int startingLength;
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
-        {
+        /// <summary>Default constructor</summary>
+        private Pattern() { }
 
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
+        /// <summary>Constructs a new pattern</summary>
+        /// <param name="text">Pattern text</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
+        public Pattern(string text)
         {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
+            text = text ?? "";
+            IList<string> tokenStrings = PatternRegex.Tokenize(text);
+            startingLength = text.Length + (tokenStrings.Count * 25);
+
+            List<Token> tokenList = new List<Token>(tokenStrings.Count);
+            for (int x = 0; x < tokenStrings.Count; x++)
+                tokenList.Add(TokenFactory.Default.CreateToken(tokenStrings[x]));
+            tokens = tokenList.ToArray();
         }
 
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
+        /// <summary>Formats the specified entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
+        public string Format(ref Entry entry)
         {
-            Console.WriteLine(FormatEntry(ref entry));
+            StringBuilder sb = new StringBuilder(startingLength);
+
+            for (int x = 0; x < tokens.Length; x++)
+                sb.Append(tokens[x].Format(ref entry));
+           
+            return sb.ToString();
         }
     }
 }

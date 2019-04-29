@@ -17,57 +17,42 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Runtime.CompilerServices;
-
-using NeoLog.Configuration;
-
-namespace NeoLog.Loggers
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    /// <summary>A logger which writes </summary>
-    public sealed class ConsoleLogger : Logger
+    /// <summary>A token for OS info</summary>
+    internal sealed class OsToken : Token
     {
-        /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
+        /// <summary>The value to use when replacing token placeholders</summary>
+        private static string Value;
 
-        /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        /// <summary>Static initializer</summary>
+        static OsToken()
         {
-            IsBufferingEnabled = false,
-            IsUnbufferedAsyncEnabled = true,
-            EntryFormat = DefaultEntryFormat
-        };
+            TokenFactory.Default.Register(typeof(OsToken), "{{os}}");
 
-        /// <summary>A default configuration for this logger type</summary>
-        protected override LoggerConfiguration DefaultConfiguration
-        {
-            get
+            try
             {
-                return StaticConfiguration.Copy();
+                Value = System.Runtime.InteropServices.RuntimeInformation.OSDescription;
+            }
+            catch
+            {
+                Value = "";
             }
         }
+        
+        /// <summary>Default constructor</summary>
+        private OsToken() : base(null) { }
 
-        /// <summary>Acquires resources needed by this logger</summary>
-        protected override void Initialize()
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
+        public OsToken(string text) : base(text) { }
+
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
+        public override string Format(ref Entry entry)
         {
-
-        }
-
-        /// <summary>Writes entries in the specified buffer to the console</summary>
-        /// <param name="buffer">The log entries to write</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(EntryBuffer buffer)
-        {
-            for (int x = 0; x < buffer.Count; x++)
-                try { Write(ref buffer.Entries[x]); } catch { }
-        }
-
-        /// <summary>Writes the specified entry to the console</summary>
-        /// <param name="entry">The entry to write</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected override void Write(ref Entry entry)
-        {
-            Console.WriteLine(FormatEntry(ref entry));
+            return Value;
         }
     }
 }
