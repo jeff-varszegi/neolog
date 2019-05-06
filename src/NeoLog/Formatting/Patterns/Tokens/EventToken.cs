@@ -18,33 +18,35 @@
 ***********************************************************************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
 
-namespace NeoLog.Performance
+namespace NeoLog.Formatting.Patterns.Tokens
 {
-    [ObsoleteAttribute("The single purpose of this class is to measure performance penalties of a different programming approach; remove the ObsoleteAttribute to obtain microbenchmarks", true)]
-    public class EntryObject
+    /// <summary>A token for raw text</summary>
+    internal sealed class EventToken : Token
     {
-        public Level Level { get; private set; }
-        public DateTime Timestamp { get; private set; }
-        public string Message { get; private set; }
-        public Exception Exception { get; private set; }
-        public string Context { get; private set; }
-        public object Data { get; private set; }
-        public string Tag { get; private set; }
-        public string Category { get; private set; }
-        public int ThreadId { get; private set; }
-
-        public EntryObject(Level level, DateTime timestamp, string message, Exception exception, string context, object data, string tag, string category, int threadId)
+        /// <summary>Static initializer</summary>
+        static EventToken()
         {
-            this.Level = level;
-            this.Timestamp = timestamp;
-            this.Message = message;
-            this.Exception = exception;
-            this.Context = context;
-            this.Data = data;
-            this.Tag = tag;
-            this.Category = category;
-            this.ThreadId = threadId;
+            TokenFactory.Default.Register(typeof(EventToken), "{{event}}");
+        }
+
+        /// <summary>Default constructor</summary>
+        private EventToken() : base(null) { }
+
+        /// <summary>Constructs a new instance</summary>
+        /// <param name="text">The source text of this token</param>
+        public EventToken(string text) : base(text) { }
+
+        /// <summary>Formats an entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override string Format(ref Entry entry)
+        {
+            return entry.Event ?? "";
         }
     }
 }

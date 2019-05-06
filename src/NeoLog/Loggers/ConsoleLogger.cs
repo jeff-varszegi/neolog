@@ -28,7 +28,7 @@ namespace NeoLog.Loggers
     public sealed class ConsoleLogger : Logger
     {
         /// <summary></summary>
-        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper pad=true}} {{message}}";
+        private const string DefaultEntryFormat = "{{timestamp}} {{level case=upper center=true}} {{message}}";
 
         /// <summary>A reusable configuration</summary>
         private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()

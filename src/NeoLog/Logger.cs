@@ -24,7 +24,9 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+
 using NeoLog.Configuration;
+using NeoLog.Extensions;
 using NeoLog.Formatting.Patterns;
 using NeoLog.Utility;
 
@@ -33,21 +35,92 @@ namespace NeoLog
     /// <summary>A base class for ILogger implementations</summary>
     public abstract class Logger : ILogger
     {
+        #region Static members
+
+        /// <summary>A minimum buffer-flush interval, in milliseconds</summary>
+        private static TimeSpan MinimumBufferFlushInterval = new TimeSpan(1000000L);
+
+        /// <summary>A maximum buffer-flush interval, in milliseconds</summary>
+        private static TimeSpan MaximumBufferFlushInterval = new TimeSpan(1, 0, 0, 0);
+
+        #endregion Static members
+
+        #region Fields and properties
+
+        /// <summary>The pattern to use in formatting entries for this logger</summary>
+        private Pattern entryPattern;
+
+        /// <summary>Whether buffering mode is enabled for this logger</summary>
+        bool isBufferingEnabled;
+
+        /// <summary>Whether, when in unbuffered mode, async calls will still be used</summary>
+        bool isUnbufferedAsyncEnabled;
+
+        /// <summary>Indicates if output has been raised when the logger is unstarted but an attempt is made to use it; this is done only once by design</summary>
+        private bool isUnstartedExceptionRaised = false;
+
         /// <summary>Used in synchronization</summary>
         private object monitor = new object();
 
-        /// <summary>Used in synchronization</summary>
-        private object flushMonitor = new object();
+        /// <summary>Used in synchronizing access to the current buffer</summary>
+        private object currentBufferMonitor = new object();
 
         /// <summary>The current buffer being written to, in buffering mode</summary>
         private EntryBuffer currentBuffer;
-        
-        private int entryCount = 0;
 
+        /// <summary>Buffers waiting to be written to output</summary>
         private ConcurrentQueue<EntryBuffer> buffers = new ConcurrentQueue<EntryBuffer>();
 
         /// <summary>Filters to use in evaluating entries</summary>
         private IFilter[] filters = { };
+
+        /// <summary>A logger to receive messages when this logger cannot write to output</summary>
+        public ILogger BackupLogger { get; set; }
+
+        #region Configuration
+
+        /// <summary>The configuration used by this logger</summary>
+        private LoggerConfiguration configuration;
+
+        /// <summary>Gets a default configuration for this logger type, if any</summary>
+        protected abstract LoggerConfiguration DefaultConfiguration { get; }
+
+        /// <summary>The configuration used by this logger</summary>
+        public LoggerConfiguration Configuration
+        {
+            get
+            {
+                return configuration ?? DefaultConfiguration;
+            }
+            set
+            {
+                if (value == null) throw new InvalidOperationException("Cannot set a null configuration");
+                lock (monitor)
+                {
+                    if (Status != LoggerStatus.Stopped) throw new InvalidOperationException("Can only set a configuration on a stopped logger");
+                    configuration = value;
+                }
+            }
+        }
+
+        #endregion Configuration
+
+        #region Threading
+
+        /// <summary>The thread allocated to drive this logger in buffering mode</summary>
+        private Thread thread;
+
+        /// <summary>The intervals between automatic buffer flushes</summary>
+        private TimeSpan bufferFlushInterval;
+
+        /// <summary>The current status of this logger</summary>
+        public LoggerStatus Status { get; private set; } = LoggerStatus.Stopped;
+
+        #endregion Threading
+
+        #endregion Fields and properties
+
+        #region Methods
 
         /// <summary>Adds an entry filter</summary>
         /// <param name="filter">The filter to add</param>
@@ -67,38 +140,43 @@ namespace NeoLog
             }
         }
 
-        /// <summary>Indicates whether the specified entry is filtered out, i.e. excluded by one or more filters</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry is filtered out, otherwise false</returns>
+        /// <summary>Raises the specified exception, which may involve throwing, writing to the backup logger, or doing nothing depending on the configuration</summary>
+        /// <param name="message">The message of the exception to raise</param>
+        /// <param name="exception">An optional exception object</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected bool IsEntryExcluded(ref Entry entry)
+        private void RaiseException(string message, Exception exception = null)
         {
-            for (int x = 0; x < filters.Length; x++)
-                if (filters[x].Excludes(ref entry))
-                    return true;
+            if (string.IsNullOrWhiteSpace(message))
+            {
+                if (exception != null)
+                {
+                    message = exception.GetExtendedMessage();
+                    exception = null;
+                }
+                else
+                {
+                    return;
+                }
+            }
 
-            return false;
-        }
+            if (exception != null)
+                message = message + " (" + exception.GetExtendedMessage() + ")";
 
-        /// <summary>Formats the specified entry</summary>
-        /// <param name="entry">The entry to format</param>
-        /// <returns>A string representation of the specified entry</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected string FormatEntry(ref Entry entry)
-        {
-            return entryPattern.Format(ref entry);
+            if ((bool)configuration?.IsExceptionThrowingEnabled)
+            {
+                throw new InvalidOperationException(message);
+
+            }
+            else
+            {
+                if (this.BackupLogger != null)
+                {
+                    Entry entry = new Entry(Level.Exception, Timekeeper.GetCurrentTimestamp(), message);
+                }
+            }
         }
 
         #region Life-cycle methods
-
-        /// <summary>The pattern to use in formatting entries for this logger</summary>
-        private Pattern entryPattern;
-
-        /// <summary>Whether buffering mode is enabled for this logger</summary>
-        bool isBufferingEnabled;
-
-        /// <summary>Whether, when in unbuffered mode, async calls will still be used</summary>
-        bool isUnbufferedAsyncEnabled;
 
         /// <summary>Handle pre-start initialization steps based on the configuration</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -112,13 +190,20 @@ namespace NeoLog
             isBufferingEnabled = configuration.IsBufferingEnabled;
             isUnbufferedAsyncEnabled = configuration.IsUnbufferedAsyncEnabled;
 
+            bufferFlushInterval = configuration.BufferFlushInterval;
+            if (bufferFlushInterval < MinimumBufferFlushInterval)
+                bufferFlushInterval = MinimumBufferFlushInterval;
+            else if (bufferFlushInterval > MaximumBufferFlushInterval)
+                bufferFlushInterval = MaximumBufferFlushInterval;
+                                
             if (string.IsNullOrWhiteSpace(configuration.EntryFormat))
                 throw new InvalidOperationException("Cannot start a logger without a defined entry format");
             else
                 entryPattern = new Pattern(configuration.EntryFormat);
-
-
         }
+
+        /// <summary>A hook for logger-specific configuration handling during initialization; called during Start()</summary>
+        protected virtual void Configure() {}
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Start() {
@@ -127,6 +212,7 @@ namespace NeoLog
             {
                 if (Status != LoggerStatus.Stopped) return;
                 ProcessConfiguration();
+                isUnstartedExceptionRaised = false;
                 Status = LoggerStatus.Starting;
             }
 
@@ -138,11 +224,15 @@ namespace NeoLog
             {
                 lock (monitor)
                 {
-                    Status = LoggerStatus.Error;
-                    try { BackupLogger.LogException(e, "Exception while initializing logger " + this.GetType().FullName); } catch { }
+                    Status = LoggerStatus.Stopped;
+                    this.RaiseException("Exception while initializing logger " + this.GetType().FullName, e);
                     return;
                 }
             }
+
+            thread = new Thread(new ThreadStart(Process));
+            thread.Priority = ThreadPriority.AboveNormal;
+            thread.Start();
 
             lock (monitor)
             {
@@ -150,8 +240,20 @@ namespace NeoLog
             }
         }
 
-        /// <summary>Acquires resources needed by this logger</summary>
+        /// <summary>A hook to acquire  resources needed by this logger; called during Start()</summary>
         protected virtual void Initialize() { }
+
+        /// <summary>When in buffered mode, repeatedly flushes the buffer until the logger is stopped</summary>
+        private void Process() {
+            while (Status == LoggerStatus.Started)
+            {
+                Thread.Sleep(bufferFlushInterval);
+                try { Flush(); }
+                catch (Exception e) {
+                    try { BackupLogger.LogException(e); } catch { }
+                }
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Stop() {
@@ -167,10 +269,7 @@ namespace NeoLog
             }
             catch (Exception e)
             {
-                lock (monitor)
-                {
-                    try { BackupLogger.LogException(e, "Exception while flushing logger " + this.GetType().FullName); } catch { }
-                }
+                try { BackupLogger.LogException(e); } catch { }
             }
 
             try
@@ -194,11 +293,16 @@ namespace NeoLog
         /// <summary>Releases resources held by this logger</summary>
         protected virtual void Terminate() { }
 
-        
+        /// <summary>Performs an atomic buffer swap</summary>
+        /// <returns>The old/pre-swap current buffer, or null if left in place or nonexistent</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private EntryBuffer SwapBuffer()
         {
-            throw new NotImplementedException();
+            if (currentBuffer?.Count == 0) return null;
+            
+            EntryBuffer newBuffer = EntryBuffer.GetBuffer();
+            EntryBuffer oldBuffer = Interlocked.Exchange(ref this.currentBuffer, newBuffer);
+            return newBuffer;
         }
 
         /// <summary>Flushes buffered output</summary>
@@ -209,7 +313,6 @@ namespace NeoLog
             {
                 try
                 {
-                    EntryBuffer lastBuffer = SwapBuffer();
                     while (buffers.TryDequeue(out EntryBuffer buffer))
                     {
                         if (buffer.Count > 0)
@@ -217,15 +320,17 @@ namespace NeoLog
                         buffer.Release();
                     }
 
-                    if (lastBuffer.Count > 0)
-                        Write(lastBuffer);
-                    lastBuffer.Release();
+                    EntryBuffer lastBuffer = SwapBuffer();
+                    if (lastBuffer != null)
+                    {
+                        if (lastBuffer.Count > 0)
+                            Write(lastBuffer);
+                        lastBuffer.Release();
+                    }
                 }
                 catch (Exception e)
                 {
-                    try { BackupLogger.LogException(e, "Exception while flushing buffer for " + this.GetType().FullName); } catch { }
-//                    Status = LoggerStatus.Error;
-//                    Stop();
+                    RaiseException("Exception while flushing buffer for " + this.GetType().FullName);
                     return;
                 }
             }
@@ -240,36 +345,107 @@ namespace NeoLog
 
         #endregion Life cycle methods
 
-        /// <summary>The configuration used by this logger</summary>
-        private LoggerConfiguration configuration;
+        #region Log methods
 
-        /// <summary>Gets a default configuration for this logger type, if any</summary>
-        protected abstract LoggerConfiguration DefaultConfiguration { get; }
+        #region Backup logging
 
-        /// <summary>The configuration used by this logger</summary>
-        public LoggerConfiguration Configuration {
-            get
+        /// <summary>Writes the contents of the specified entry buffer, without clearing it, to the backup logger</summary>
+        /// <param name="buffer">The entries to write</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteBackup(EntryBuffer buffer)
+        {
+            if (this.BackupLogger != null)
             {
-                return configuration ?? DefaultConfiguration;
-            }
-            set
-            {
-                if (value == null) throw new InvalidOperationException("Cannot set a null configuration");
-                lock (monitor)
+                try
                 {
-                    if (Status != LoggerStatus.Stopped) throw new InvalidOperationException("Can only set a configuration on a stopped logger");
-                    configuration = value;
+                    Logger backupLogger = (Logger)this.BackupLogger; // TODO eliminate cast
+                    backupLogger.Write(buffer);
                 }
+                catch { }
             }
         }
 
-        /// <summary>The current status of this logger</summary>
-        public LoggerStatus Status { get; private set; } = LoggerStatus.Stopped;
+        /// <summary>Writes the specified entry to the backup logger</summary>
+        /// <param name="entry">The entry to write</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void WriteBackup(ref Entry entry)
+        {
+            if (this.BackupLogger != null)
+            {
+                try
+                {
+                    Logger backupLogger = (Logger)this.BackupLogger; // TODO eliminate cast
+                    backupLogger.Write(ref entry);
+                }
+                catch { }
+            }
+        }
 
-        /// <summary>A logger to receive messages when this logger cannot write to output</summary>
-        public ILogger BackupLogger { get; set; }
+        #endregion Backup logging
 
-        #region Log methods
+        #region Entry preparation
+
+        /// <summary>Formats the specified entry</summary>
+        /// <param name="entry">The entry to format</param>
+        /// <returns>A string representation of the specified entry</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected string FormatEntry(ref Entry entry)
+        {
+            return entryPattern.Format(ref entry);
+        }
+
+        #endregion Entry preparation
+
+        /// <summary>Indicates whether this logger's filters allow this entry to be written. Called from Write()</summary>
+        /// <returns>A result indicating whether the specified entry should be written</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected bool ShouldWrite(ref Entry entry)
+        {
+            FilterResult result;
+            for (int x = 0; x < filters.Length; x++)
+            {
+                result = filters[x].Evaluate(ref entry);
+                switch (result)
+                {
+                    case FilterResult.Exclude: return false;
+                    case FilterResult.Include: return true;
+                    case FilterResult.Pass: break;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>Gets a buffer which can receive input</summary>
+        /// <returns>An entry buffer</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private EntryBuffer GetBuffer()
+        {
+            EntryBuffer buffer = currentBuffer;
+            if (buffer.Count < buffer.Length)
+            {
+                return buffer;
+            }
+            else
+            {
+                EntryBuffer nextBuffer = EntryBuffer.GetBuffer();
+
+                lock (currentBufferMonitor)
+                {
+                    buffer = currentBuffer;
+                    if (buffer.Count >= buffer.Length) 
+                    {
+                        currentBuffer = nextBuffer;
+                        buffers.Enqueue(buffer);
+                        return currentBuffer;
+                    }
+                }
+
+                // If we have gotten this far, the buffers were already switched
+                Task.Run(() => nextBuffer.Release()); // allows work to be queued async without large-scale buffering
+                return currentBuffer;
+            }
+        }
 
         /// <summary>Adds a log entry</summary>
         /// <param name="level">The level of the entry</param>
@@ -286,27 +462,44 @@ namespace NeoLog
         {
             if (Status != LoggerStatus.Started)
             {
-                if (configuration == null || configuration.IsExceptionThrowingEnabled)
-                    throw new InvalidOperationException("The logger is not started--cannot write entry");
-                else
+                if ((bool)configuration?.IsAutoStartEnabled)
+                {
+                    Start();
+                }
+                else if (!isUnstartedExceptionRaised)
+                {
+                    isUnstartedExceptionRaised = true;
+                    RaiseException("The logger is not started--cannot write entry");
                     return;
+                }
             }
 
             if (isBufferingEnabled)
             {
-
+                EntryBuffer buffer;
+                DateTime timestamp = Timekeeper.GetCurrentTimestamp();
+                int threadId = 0; // TODO
+                while ((buffer = this.GetBuffer()) != null)
+                {
+                    // The only reason adding an entry should fail is if the buffer is full, i.e. a swap is needed
+                    if (buffer.AddEntry(level, timestamp, message, exception, context, data, tag, category, user, threadId, properties) ||
+                        Status != LoggerStatus.Started) // i.e. the logger has been stopped in the meantime
+                        return;
+                }
             }
             else
             {
-                Entry entry = new Entry(level, Timekeeper.GetCurrentTimestamp(), message, exception, context, data, tag, Category.None, user, 0, properties);
-                if (IsEntryExcluded(ref entry)) return;
+                Entry entry = new Entry(level, Timekeeper.GetCurrentTimestamp(), message, exception, context, data, tag, category, user, 0, properties);
 
                 if (isUnbufferedAsyncEnabled)
                 {
-                    Task.Run(() => Write(ref entry));
+                    Task.Run(() => Write(ref entry)); // allows work to be queued async without large-scale buffering
                 }
                 else
                 {
+                    Write(ref entry);
+
+                    /*
                     try
                     {
                         Write(ref entry);
@@ -320,6 +513,7 @@ namespace NeoLog
                             } catch { }
                         }
                     }
+                    */
                 }
             }
         }
@@ -466,5 +660,7 @@ namespace NeoLog
         #endregion Output methods
 
         #endregion Log methods
+
+        #endregion Methods
     }
 }

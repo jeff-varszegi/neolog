@@ -51,13 +51,13 @@ namespace NeoLog.Formatting.Patterns.Tokens
             values[16] = "Exception";
             values[32] = "Fatal";
 
-            if (ParameterText.Contains("case=upper"))
+            if (ParameterText.Contains("case=upper") || ParameterText.Contains("case=\"upper\"") || ParameterText.Contains("case='upper'"))
             {
                 for (int x = 1; x < values.Length; x++)
                     if (values[x] != null)
                         values[x] = values[x].ToUpper();
             }
-            else if (ParameterText.Contains("case=lower"))
+            else if (ParameterText.Contains("case=lower") || ParameterText.Contains("case=\"lower\"") || ParameterText.Contains("case='lower'"))
             {
                 for (int x = 1; x < values.Length; x++)
                     if (values[x] != null)

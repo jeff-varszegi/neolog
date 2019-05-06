@@ -19,20 +19,66 @@
 
 using System;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 
-namespace NeoLog.Filters
+using NeoLog.Collections;
+
+namespace NeoLog.Configuration
 {
-    /// <summary>Includes/excludes entries based on custom property values</summary>
-    public sealed class PropertyFilter : IFilter
+    /// <summary>A configuration for a logging component</summary>
+    public class Configuration
     {
-        /// <summary>Evaluates an entry</summary>
-        /// <param name="entry">The entry to evaluate</param>
-        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FilterResult Evaluate(ref Entry entry)
+        /// <summary>Default required settings</summary>
+        private static string[] DefaultRequiredSettings = { };
+
+        /// <summary>Ad-hoc settings for this configuration</summary>
+        public SettingCollection Settings { get; private set; } = new SettingCollection();
+
+        /// <summary>A fallback configuration, from which to get values missing in this one</summary>
+        private Configuration parent;
+
+        /// <summary>The fallback parent of this configuration</summary>
+        public Configuration Parent
         {
-            throw new NotImplementedException();
+            get
+            {
+                return parent;
+            }
+
+            set
+            {
+                lock (this)
+                {
+                    if (parent != null) throw new InvalidOperationException("Parent can only be set once");
+                    else if (value == null) return;
+
+                    // Cyclical redundancy check
+                    Configuration ancestor = value;
+                    while (ancestor != null)
+                    {
+                        if (ancestor == this) return;
+                        ancestor = ancestor.parent;
+                    }
+
+                    SettingCollection newSettings = Settings.Copy();
+                    newSettings.Parent = value.Settings;
+                    parent = value;
+                    Settings = newSettings;
+                }
+            }
         }
+
+        /// <summary>Settings required for this configuration to be valid</summary>
+        public virtual IEnumerable<string> RequiredSettings { get { return DefaultRequiredSettings; } }
+
+        /// <summary>Copies this configuration</summary>
+        /// <typeparam name="T">The type of this instance</typeparam>
+        /// <returns>A copy of this configuration</returns>
+        public T Copy<T>() where T: Configuration
+        {
+            object o = typeof(T);
+            T copy = (T)this.MemberwiseClone();
+            copy.Settings = this.Settings.Copy();
+            return copy;
+        } 
     }
 }

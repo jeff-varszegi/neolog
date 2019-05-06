@@ -83,7 +83,7 @@ namespace NeoLog
             string context = null,
             object data = null,
             string tag = null,
-            Category category = Category.None,
+            string category = null,
             string user = null,
             int threadId = 0,
             IDictionary<string, string> properties = null
@@ -92,6 +92,7 @@ namespace NeoLog
             int newCount = Interlocked.Increment(ref testCount); // Increment this first to see if we're running off the edge of the buffer...
             if (newCount > Length)                               // ... and roll back as necessary
             {
+                // AFTER**********************************
                 Interlocked.Decrement(ref testCount);
                 return false;
             }
@@ -138,7 +139,7 @@ namespace NeoLog
             string context = null,
             object data = null,
             string tag = null,
-            Category category = Category.None,
+            string category = null,
             string user = null,
             int threadId = 0,
             IDictionary<string, string> properties = null

@@ -1,35 +1,27 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>NeoLog</AssemblyName>
+    <RootNamespace>NeoLog</RootNamespace>
+    <Authors>Jeffrey Varszegi</Authors>
+    <Copyright>2019 Jeffrey Varszegi</Copyright>
+    <PackageProjectUrl>https://github.com/jeff-varszegi/neolog</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/jeff-varszegi/neolog/blob/master/LICENSE.txt</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/jeff-varszegi/neolog</RepositoryUrl>
+    <Description>A high-performance logging package for .NET</Description>
+    <PackageIconUrl>https://raw.githubusercontent.com/jeff-varszegi/neolog/master/media/neolog-icon.png</PackageIconUrl>
+    <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageTags>logging</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <Optimize>false</Optimize>
-    <DefineConstants></DefineConstants>
+    <OutputPath></OutputPath>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants />
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <WarningsAsErrors />
-    <FileAlignment>512</FileAlignment>
-    <DebugType>full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <Compile Remove="Performance\**" />
-    <Compile Remove="Serialization\**" />
-    <EmbeddedResource Remove="Performance\**" />
-    <EmbeddedResource Remove="Serialization\**" />
-    <None Remove="Performance\**" />
-    <None Remove="Serialization\**" />
-  </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Filters\CategoryFilter.cs" />
-    <Compile Remove="LogType.cs" />
   </ItemGroup>
 
 </Project>

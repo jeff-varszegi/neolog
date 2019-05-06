@@ -17,30 +17,14 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-
-namespace NeoLog.Performance
+namespace NeoLog.Filters
 {
-    [ObsoleteAttribute("The single purpose of this class is to measure performance penalties of a different programming approach; remove the ObsoleteAttribute to obtain microbenchmarks", true)]
-    public class LogBufferObjects
+    /// <summary>An abstract base class for IFilter implementations</summary>
+    public abstract class Filter
     {
-        private const int MinimumLength = 100;
-        
-        public int Count { get; set; }
-
-        public int Length { get; private set; }
-
-        public EntryObject[] Entries { get; private set; }
-
-        public LogBufferObjects(int length)
-        {
-            Length = length < MinimumLength ? MinimumLength : length;
-            Entries = new EntryObject[Length];
-        }
-
-        public void Clear()
-        {
-            Array.Clear(Entries, 0, Length);
-        }
+        /// <summary>Evaluates an entry</summary>
+        /// <param name="entry">The entry to evaluate</param>
+        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
+        public abstract FilterResult Evaluate(ref Entry entry);
     }
 }

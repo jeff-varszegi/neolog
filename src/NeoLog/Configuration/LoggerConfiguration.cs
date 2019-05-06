@@ -19,8 +19,10 @@
 
 using NeoLog.Formatting;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace NeoLog.Configuration
 {
@@ -28,7 +30,7 @@ namespace NeoLog.Configuration
     {
         private const string Iso8601Format = "yyyy'-'dd'-'MM'T'HH':'mm':'ss'.'fffZ";
 
-        private static TimeSpan MinimumBufferFlushInterval = new TimeSpan(0, 0, 1);
+        private static TimeSpan MinimumBufferFlushInterval = new TimeSpan(0, 0, 0, 0, 100);
 
         private LoggerConfiguration parent;
         private List<LoggerConfiguration> children = new List<LoggerConfiguration>();
@@ -36,36 +38,13 @@ namespace NeoLog.Configuration
         public string LoggerName { get; set; }
         public Type LoggerType { get; set; }
 
-        public LoggerConfiguration Parent
+        private static IList<string> DefaultRequiredSettings = new List<string>().AsReadOnly();
+
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected virtual IList<string> GetRequiredSettings()
         {
-            get { return parent; }
-            set
-            {
-                lock (this)
-                {
-                    if (value == null)
-                    {
-                        if (parent != null)
-                            lock (parent)
-                                parent.children.Remove(this);
-                        parent = null;
-                        return;
-                    }
-
-                    LoggerConfiguration ancestor = value;
-                    while (ancestor != null)
-                        if (ancestor == this)
-                            return;
-                        else
-                            ancestor = ancestor.Parent;
-
-                    lock (value)
-                    {
-                        value.children.Add(this);
-                        this.parent = value;
-                    }
-                }
-            }
+            return DefaultRequiredSettings;
         }
 
         public IEnumerable<LoggerConfiguration> Children {
@@ -76,10 +55,10 @@ namespace NeoLog.Configuration
             }
         }
 
-        /// <summary>When buffering mode is disabled, this indicates whether logging calls will be asynchronously dispatched (defaults to false)</summary>
-        public bool IsUnbufferedAsyncEnabled { get; set; } = false;
+        /// <summary>When buffering mode is disabled, this indicates whether logging calls will be asynchronously dispatched (defaults to true)</summary>
+        public bool IsUnbufferedAsyncEnabled { get; set; } = true;
 
-        /// <summary>Whether log buffering is enabled for this logger (defaults to true)</summary>
+        /// <summary>Whether log buffering is enabled</summary>
         public bool IsBufferingEnabled { get; set; } = true;
 
         private TimeSpan bufferFlushInterval = new TimeSpan(0, 0, 5);

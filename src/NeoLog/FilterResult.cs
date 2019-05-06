@@ -17,22 +17,16 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-
-namespace NeoLog.Filters
+namespace NeoLog
 {
-    /// <summary>Includes/excludes entries based on custom property values</summary>
-    public sealed class PropertyFilter : IFilter
+    /// <summary>The result of a filtering operation</summary>
+    public enum FilterResult
     {
-        /// <summary>Evaluates an entry</summary>
-        /// <param name="entry">The entry to evaluate</param>
-        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public FilterResult Evaluate(ref Entry entry)
-        {
-            throw new NotImplementedException();
-        }
+        /// <summary>Indicates that a filter excludes an entry from output</summary>
+        Exclude,
+        /// <summary>Indicates that a filter specifically includes an entry in output, and further filters should not be evaluated</summary>
+        Include,
+        /// <summary>Indicates that a filter neither excludes nor specifically includes an entry</summary>
+        Pass
     }
 }

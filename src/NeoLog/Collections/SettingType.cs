@@ -18,52 +18,21 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Runtime.CompilerServices;
+using System.Collections.Generic;
+using System.Text;
 
-namespace NeoLog.Performance
+namespace NeoLog.Collections
 {
-    [ObsoleteAttribute("The single purpose of this struct is to measure performance penalties of a different programming approach; remove the ObsoleteAttribute to obtain microbenchmarks", true)]
-    public class LogBufferFields
+    /// <summary>Enumerates valid types for logger/logging configuration settings</summary>
+    internal enum SettingType
     {
-        private const int MinimumLength = 100;
-        
-        public int Count { get; set; }
-        public int Length { get; private set; }
-
-        public Level[] Levels;
-        public DateTime[] Timestamps;
-        public string[] Messages;
-        public Exception[] Exceptions;
-        public string[] Contexts;
-        public object[] Data;
-        public string[] Tags;
-        public string[] Categories;
-        public int[] ThreadIds;
-
-        public LogBufferFields(int length)
-        {
-            Length = length < MinimumLength ? MinimumLength : length;
-            Levels = new Level[Length];
-            Timestamps = new DateTime[Length];
-            Messages = new string[Length];
-            Exceptions = new Exception[Length];
-            Contexts = new string[Length];
-            Data = new object[Length];
-            Tags = new string[Length];
-            Categories = new string[Length];
-            ThreadIds = new int[Length];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Clear()
-        {
-            Count = 0;
-            Array.Clear(Exceptions, 0, Length);
-            Array.Clear(Contexts, 0, Length);
-            Array.Clear(Data, 0, Length);
-            Array.Clear(Tags, 0, Length);
-            Array.Clear(Categories, 0, Length);
-            Array.Clear(ThreadIds, 0, Length);
-        }
+        /// <summary>Indicates that a setting is a true/false value</summary>
+        Boolean,
+        /// <summary>Indicates that a setting is an integer value</summary>
+        Integer,
+        /// <summary>Indicates that a setting is a floating-point decimal value</summary>
+        FloatingPoint,
+        /// <summary>Indicates that a setting is a string value</summary>
+        String
     }
 }

@@ -27,13 +27,23 @@ namespace NeoLog.Loggers
     public sealed class NullLogger : Logger
     {
         /// <summary>A reusable configuration</summary>
-        private static LoggerConfiguration StaticConfiguratoin = new LoggerConfiguration();
+        private static LoggerConfiguration StaticConfiguration = new LoggerConfiguration()
+        {
+            IsBufferingEnabled = false,
+            IsContextTrackingEnabled = false,
+            IsEncryptionEnabled = false,
+            IsExceptionThrowingEnabled = false,
+            IsIdentityEncryptionEnabled = false,
+            IsRelativeStackTraceEnabled = false,
+            IsThreadTrackingEnabled = false,
+            IsUnbufferedAsyncEnabled = false
+        };
 
         /// <summary>A default configuration for this logger type</summary>
         protected override LoggerConfiguration DefaultConfiguration {
             get
             {
-                return StaticConfiguratoin;
+                return StaticConfiguration;
             }
         }
 

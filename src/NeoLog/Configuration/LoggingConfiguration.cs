@@ -19,6 +19,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace NeoLog.Configuration
@@ -36,6 +37,25 @@ namespace NeoLog.Configuration
             set { if (value != null) DefaultValue = value; }
         }
 
+        /// <summary>Used in synchronization</summary>
+        private object monitor = new object();
+
+        /// <summary>Logger configurations which comprise this overall configuration</summary>
+        private List<LoggerConfiguration> loggerConfigurations = new List<LoggerConfiguration>();
+
+        /// <summary>The logger for exceptions</summary>
+        public Logger ExceptionLogger { get; set; } // TODO
+
+        /// <summary>Gets l
+        /// ogger configurations which comprise this overall configuration</summary>
+        public IList<LoggerConfiguration> LoggerConfigurations
+        {
+            get
+            {
+                return loggerConfigurations.ToList();
+            }
+        }
+
         /// <summary>Indicates whether exception throwing is enabled, or exceptions will be silently logged or suppressed</summary>
 #if DEBUG
         public bool IsExceptionThrowingEnabled { get; set; } = true;
@@ -43,7 +63,19 @@ namespace NeoLog.Configuration
         public bool IsExceptionThrowingEnabled { get; set; } = false;
 #endif
 
-        /// <summary>The logger for exceptions</summary>
-        public Logger ExceptionLogger { get; set; }
+        /// <summary>Adds a logger configuration</summary>
+        /// <param name="loggerConfiguration">The configuration to add</param>
+        public void Add(LoggerConfiguration loggerConfiguration)
+        {
+            if (loggerConfiguration == null) return;
+
+            lock (monitor)
+            {
+                if (loggerConfigurations.Contains(loggerConfiguration)) return;
+                List<LoggerConfiguration> newList = loggerConfigurations.ToList();
+                newList.Add(loggerConfiguration);
+                loggerConfigurations = newList;
+            }
+        }
     }
 }

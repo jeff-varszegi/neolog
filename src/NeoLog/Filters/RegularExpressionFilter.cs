@@ -25,8 +25,11 @@ using System.Text.RegularExpressions;
 
 namespace NeoLog.Filters
 {
+    /// <summary>Filters entries based on regular expressions</summary>
     public sealed class RegularExpressionFilter : IFilter
     {
+        // TODO inclusive / exclusive
+
         /// <summary>Regular expression options to use in case-sensitive mode</summary>
         private const RegexOptions CaseSensitiveOptions = RegexOptions.Compiled | RegexOptions.CultureInvariant;
 
@@ -64,27 +67,28 @@ namespace NeoLog.Filters
             regexes = list.ToArray();
         }
 
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
+        /// <summary>Evaluates an entry</summary>
+        /// <param name="entry">The entry to evaluate</param>
+        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public bool Excludes(ref Entry entry)
+        public FilterResult Evaluate(ref Entry entry)
         {
+            string message = entry.Message;
             if (booleanOperator == BooleanOperator.Or)
             {
                 for (int x = 0; x < regexes.Length; x++)
-                    if (regexes[x].IsMatch(entry.Message))
-                        return true;
+                    if (regexes[x].IsMatch(message))
+                        return FilterResult.Exclude;
 
-                return false;
+                return FilterResult.Pass;
             }
             else
             {
                 for (int x = 0; x < regexes.Length; x++)
-                    if (!regexes[x].IsMatch(entry.Message))
-                        return false;
+                    if (!regexes[x].IsMatch(message))
+                        return FilterResult.Pass;
 
-                return true;
+                return FilterResult.Exclude;
             }
         }
     }

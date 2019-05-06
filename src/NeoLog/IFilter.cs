@@ -17,18 +17,14 @@
 *  IN THE SOFTWARE.                                                                                                    *
 ***********************************************************************************************************************/
 
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace NeoLog
 {
     /// <summary>A filter for log entries</summary>
     public interface IFilter
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        bool Excludes(ref Entry entry);
+        /// <summary>Evaluates an entry</summary>
+        /// <param name="entry">The entry to evaluate</param>
+        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
+        FilterResult Evaluate(ref Entry entry);
     }
 }

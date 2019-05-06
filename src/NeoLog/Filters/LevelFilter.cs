@@ -18,18 +18,19 @@
 ***********************************************************************************************************************/
 
 using System;
-using System.Collections.Generic; 
-using System.Text;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace NeoLog.Filters
 {
     /// <summary>Includes/excludes entries based on level</summary>
     public sealed class LevelFilter : IFilter
     {
-        /// <summary>Indicates whether this filter matches the specified entry, i.e. excludes it from output</summary>
-        /// <param name="entry">The entry to test</param>
-        /// <returns>true if the entry should be excluded, otherwise false</returns>
-        public bool Excludes(ref Entry entry)
+        /// <summary>Evaluates an entry</summary>
+        /// <param name="entry">The entry to evaluate</param>
+        /// <returns>Whether to exclude, include or pass the entry to any remaining filters</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public FilterResult Evaluate(ref Entry entry)
         {
             throw new NotImplementedException();
         }

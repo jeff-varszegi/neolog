@@ -39,8 +39,11 @@ namespace NeoLog
         /// <summary>The exception of this entry, if any</summary>
         public Exception Exception;
 
-        /// <summary>The context of this entry</summary>
+        /// <summary>Information about the context of this entry</summary>
         public string Context;
+
+        /// <summary>The type of event logged by this entry, if any</summary>
+        public string Event;
 
         /// <summary>The data of this entry</summary>
         public object Data;
@@ -49,7 +52,7 @@ namespace NeoLog
         public string Tag;
 
         /// <summary>One or more optional categories for this entry</summary>
-        public Category Category;
+        public string Category;
 
         /// <summary>The user identity for the entry, if any</summary>
         public string User;
@@ -66,19 +69,21 @@ namespace NeoLog
         /// <param name="message">The message of the entry</param>
         /// <param name="exception">The exception of the entry</param>
         /// <param name="context">The context of the entry</param>
+        /// <param name="_event">The type of event logged by this entry, if any</param>
         /// <param name="data">The data of the entry</param>
         /// <param name="tag">The tag(s) of the entry</param>
         /// <param name="category">The category/categories of the entry</param>
         /// <param name="user">The user identity for the entry, if any</param>
         /// <param name="threadId">The thread ID of the entry</param>
         /// <param name="properties">Custom key-value pairs for the entry</param>
-        public Entry(Level level, DateTime timestamp, string message, Exception exception = null, string context = null, object data = null, string tag = null, Category category = Category.None, string user = null, int threadId = 0, IDictionary<string, string> properties = null)
+        public Entry(Level level, DateTime timestamp, string message, Exception exception = null, string context = null, string _event, object data = null, string tag = null, string category = null, string user = null, int threadId = 0, IDictionary<string, string> properties = null)
         {
             this.Level = level;
             this.Timestamp = timestamp;
             this.Message = message;
             this.Exception = exception;
             this.Context = context;
+            this.Event = _event;
             this.Data = data;
             this.Tag = tag;
             this.Category = category;
